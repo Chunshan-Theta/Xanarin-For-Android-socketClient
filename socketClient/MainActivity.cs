@@ -9,6 +9,7 @@ using System.Net;
 using System.Net.Sockets;
 using Sockets.Plugin;
 using System.Threading.Tasks;
+using System.IO;
 
 namespace socketClient
 {
@@ -26,8 +27,8 @@ namespace socketClient
 
             // Get our button from the layout resource,
             // and attach an event to it
-            Button button = FindViewById<Button>(Resource.Id.MyButton);
 
+            Button button = FindViewById<Button>(Resource.Id.MyButton);
             button.Click += delegate { sendData(); };
         }
         public async void sendData()
@@ -38,7 +39,7 @@ namespace socketClient
             
             
             var client = new TcpSocketClient();
-            
+
 
             // we're connected!
             for (int i = 0; i < 5; i++)
@@ -46,15 +47,21 @@ namespace socketClient
                 await client.ConnectAsync(address, port);
                 // write to the 'WriteStream' property of the socket client to send data
                 String String_SentDataContent = "hi\n";
-                String_SentDataContent = i.ToString() +".from Android: "+String_SentDataContent;
+                String_SentDataContent = i.ToString() + ".from Android: " + String_SentDataContent;
                 byte[] byte_SentDataContent = System.Text.Encoding.Default.GetBytes(String_SentDataContent);
                 var nextByte = byte_SentDataContent;
 
                 //client.WriteStream.WriteByte((Byte)nextByte);
-                await client.WriteStream.WriteAsync(nextByte,0, nextByte.Length);
-
+                await client.WriteStream.WriteAsync(nextByte, 0, nextByte.Length);
                 await client.WriteStream.FlushAsync();
+                //await client.ReadStream.FlushAsync();               
 
+                // convert stream to string
+                StreamReader reader = new StreamReader(client.ReadStream);
+                string text = reader.ReadToEnd();                
+
+                Console.WriteLine(text);
+                
                 // wait a little before sending the next bit of data
                 await Task.Delay(TimeSpan.FromMilliseconds(3000));
                 await client.DisconnectAsync();
